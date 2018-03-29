@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="../themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../themes/icon.css">
+	<script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.serializejson.min.js"></script>
+</head>
+<body>
+        <div class="easyui-layout" data-options="fit:true">
+                <div data-options="region:'north'" style="height:70px;border: 0;padding-top: 5px;">
+                    <a href="#" id="loadAllDataBtn" class="easyui-linkbutton" data-options="iconCls:'icon-add'">所有商品</a>
+                    <a href="#" id="addBtn" class="easyui-linkbutton" data-options="iconCls:'icon-add'">添加商品</a>
+                    <a href="#" id="removesBtn" class="easyui-linkbutton" data-options="iconCls:'icon-add'">多选删除</a>
+                    <input class="easyui-searchbox" data-options="prompt:'Please Input Value',searcher:doSearch" style="width:100%">
+                </div>
+                <div data-options="region:'west',split:true" title="商品分类" style="width:160px;">
+                        <ul id="tt"></ul>
+                </div>
+               
+                <div data-options="region:'center',title:'Main Title',iconCls:'icon-ok'">
+                    <table id="dg"></table>
+                    <div id="w" class="easyui-window" title="商品信息" data-options="iconCls:'icon-save',closed:true" style="width:500px;height:200px;padding:10px;">
+                     </div>
+                    <div id="dlg" class="easyui-dialog" title="Basic Dialog" data-options="iconCls:'icon-save',closed:true" style="width:400px;height:200px;padding:10px">
+                        <form id="ff" method="post">
+                             <div style="margin-bottom:20px">
+                                 <input class="easyui-textbox" name="_id">
+
+                                 <input class="easyui-textbox" name="title" style="width:100%" data-options="label:'名称:',required:true">
+                            </div>
+                            <div style="margin-bottom:20px">
+                                <input class="easyui-textbox" name="price" style="width:100%;height:20px" data-options="label:'价格:',multiline:true">
+                                <input class="easyui-textbox" name="desc" style="width:100%;height:60px" data-options="label:'商品描述:',multiline:true">
+                            </div>             
+                        </form>
+                        <div style="text-align:center;padding:5px 0">
+                                <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm()" style="width:80px">Submit</a>
+                                <a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm()" style="width:80px">Clear</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+ <script>
+var cateId = null;
+$('#tt').tree({
+ url: "http://localhost:3000/cate/list/1",
+ method: "get",
+ onClick:function(node){
+    cateId = node._id;
+    $("#dg").datagrid({
+        queryParams:{
+            cateId:cateId
+        }
+    }).datagrid('reload');
+ } 
+});
+$('#dg').datagrid({
+    url:'http://localhost:3000/product/list',
+    method: "post",
+    queryParams:{
+        cateId: cateId
+    },
+    fit: true,
+    pagination: true,
+    pageSize: 10,
+    pageList:[10,20,30],
+    columns:[[
+        {field:'ck',title:'复选',checkbox: true},
+		{field:'title',title:'商品名称',width:100},
+        {field:'price',title:'价格',width:200},
+        {field:'desc',title:'商品描述',width:200},
+        {field:'operate',title:'操作', width:120,
+			formatter: function(value,row,index){
+				return "<a onclick=deleteData('"+row._id+"')>删除</a> <a onclick=editData('"+row._id+"')>修改</a> <a onclick=checkData('"+row._id+"')>查看</a>"
+			}
+		}
+    ]]
+});
+
+$("#addBtn").click(function(){
+    $('#ff').form('clear');
+    if(cateId === null){
+        $.messager.show({
+            title: "信息提示",
+            msg:'请选择分类，否则无法添加商品',
+            showType:'show',
+            timeout: 3000
+        });
+    }else{
+        $('#dlg').dialog('open');
+    }
+})
+
+function submitForm(){
+   var postData = $("#ff").serializeJSON();
+   postData.cateId = cateId;
+   if(postData._id.length>0){
+       delete postData.cateId;
+    $.ajax({
+       type: "put",
+       url: "http://localhost:3000/product/data/" +postData._id,
+       data: postData,
+       async:true
+   }).done(function(res){
+    $.messager.show({
+            title: "信息提示",
+            msg:'数据修改成功',
+            showType:'show',
+            timeout: 3000
+   });
+   $('#dlg').dialog('close');
+   $('#dg').datagrid('reload');
+})
+   }else{
+      
+      delete postData._id;
+      $.ajax({
+       type: "post",
+       url: "http://localhost:3000/product/data",
+       data: postData,
+       async:true
+   }).done(function(res){
+    $.messager.show({
+            title: "信息提示",
+            msg:'数据添加成功',
+            showType:'show',
+            timeout: 3000
+   });
+   $('#dlg').dialog('close');
+   $('#dg').datagrid('reload');
+})
+   }  
+}
+ function clearForm(){
+    $('#ff').form('clear');
+}
+
+function deleteData(id){
+    $.messager.confirm('确认删除', '你确定删除数据吗?', function(r){
+		if (r){
+				 $.ajax({
+                         type: "delete",
+                         url: "http://localhost:3000/product/data/" +id,
+                         async:true
+                        }).done(function(res){
+                           $("#dg").datagrid('reload');
+                       })
+				}
+		});
+}
+function editData(id){
+    $.ajax({
+       type: "get",
+       url: "http://localhost:3000/product/data/" +id,
+       async:true
+   }).done(function(res){
+       $('#ff').form('load', res);
+       $('#dlg').dialog('open');
+   })   
+}
+
+function checkData(id){
+    $.ajax({
+       type: "get",
+       url: "http://localhost:3000/product/data/" +id,
+       async:true,
+   }).done(function(res){
+       JSON.stringify(res);
+        $.each(res,function(i,v){
+           $("#w").append(i+':'+v+'</br>')
+        })
+    $('#w').window('open')
+   })  
+   $('#w').html('');
+}
+$("#removesBtn").click(function(){
+      var rows = $("#dg").datagrid('getSelections');
+      if(rows.length>0){
+          var ids =[];
+          rows.forEach(function(item,idx){
+              ids.push(item._id)
+          })
+          $.ajax({
+       type: "post",
+       url: "http://localhost:3000/product/data/removes",
+       data:{
+           ids: ids.toString()
+       },
+       async:true
+   }).done(function(res){
+    $('#dg').datagrid('reload');
+   })
+      }
+})
+$('#loadAllDataBtn').click(function(){
+    cateId =null;
+    $("#dg").datagrid({
+        queryParams:{
+            cateId: cateId
+        }
+    }).datagrid('reload');
+})
+function doSearch(value){
+    $("#dg").datagrid({
+        queryParams:{
+            cateId: cateId,
+            title: value
+        }
+    }).datagrid('reload');
+}
+</script>
+</body>
+</html>

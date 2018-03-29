@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" type="text/css" href="../themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../themes/icon.css">
+	<script type="text/javascript" src="../js/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="../js/jquery.serializejson.min.js"></script>
+	
+	<!--<script type="text/javascript" src="../js/jquery-1.4.4.min.js"></script>-->
+    <script type="text/javascript" src="../js/xheditor-min.js"></script>
+	<script type="text/javascript" src="../xheditor_lang/zh-cn.js"></script>
+	<link rel="stylesheet" type="text/css" href="../xheditor_skin/default/ui.css">
+	<link rel="stylesheet" type="text/css" href="../xheditor_skin/default/iframe.css">
+	
+	
+    <title>Document</title>
+</head>
+<body>
+     <div class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'north'" style="height:50px;border: 0;padding-top: 15px;">
+        	<a href="#" id="searchAllBtn" class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="width:80px">所有新闻</a>
+        	<a href="#" id="addBtn" class="easyui-linkbutton" data-options="iconCls:'icon-add'" >添加新闻</a>
+	        <a href="#" id="removesBtn" class="easyui-linkbutton" data-options="iconCls:'icon-remove'">删除多个</a>
+			<input class="easyui-searchbox" data-options="prompt:'Please Input Value',searcher:doSearch" style="width:400px">
+        </div>
+        <div data-options="region:'west',split:true" title="新闻中心" style="width:150px;">
+        	<ul id="tt"></ul>
+        </div>
+        <div data-options="region:'center',title:'Main Title',iconCls:'icon-ok'">
+           <table id="dg"></table>
+           <div id="dlg" class="easyui-dialog " title="Basic Dialog" data-options="iconCls:'icon-save',closed:true" style="width:800px;height:400px;padding:10px">
+		        <form id="ff" method="post" action="">
+		        	<div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="id" >
+		            </div>
+		            <div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="title" style="width:400px" data-options="label:'标题:',required:true">
+		            </div>
+		            <div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="author" style="width:400px" data-options="label:'作者:',required:true">
+		            </div>
+		            <div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="source" style="width:100%;height:60px" data-options="label:'新闻内容:',multiline:true">
+		            </div>	
+		            <div style="margin-bottom:20px" >
+		                <textarea name="content" class="xheditor " style="width: 700px;height: 500px;"></textarea>
+		            </div>	           
+		        </form>
+		        <div style="text-align:center;padding:5px 0">
+		            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm()" style="width:80px">提交</a>
+		            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm()" style="width:80px">取消</a>
+		        </div>
+		   </div>
+		   
+		    <div id="dlg1" class="easyui-dialog" title="Basic Dialog" data-options="iconCls:'icon-save',closed:true" style="width:800px;height:400px;padding:10px">
+		         <form id="ff" method="post" action="">
+		        	<div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="id" >
+		            </div>
+		            <div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="title" style="width:100%" data-options="label:'标题:',required:true">
+		            </div>		          
+		            <div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="author" style="width:100%" data-options="label:'作者:',required:true">
+		            </div>
+		            <div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="source" style="width:100%;height:60px" data-options="label:'新闻内容:',multiline:true">
+		            </div>	  
+		            <div style="margin-bottom:20px">
+		                <input class="easyui-textbox" name="source" style="width:100%;height:60px" data-options="label:'新闻内容:',multiline:true">
+		            </div>	
+		             <div style="margin-bottom:20px">
+		               <a href="comment.html"id="commentBtn" class="easyui-linkbutton" data-options="iconCls:'icon-print'" style="width:150px">评论999+</a>                          
+		            </div>	
+		        </form>
+		    </div>
+        </div>
+    </div>      
+    <script type="text/javascript">
+    	var cateId=null;
+		
+    	$('#tt').tree({
+		    url: "http://localhost:3000/cate/list/2",
+		    method:'get',
+		    onClick: function(node){
+				cateId=node._id;
+				$("#dg").datagrid({
+					queryParams: {
+						cateId:cateId
+					}
+				}).datagrid('reload')
+			}
+		});
+		
+		$('#dg').datagrid({
+		    url:'http://localhost:3000/news/list',
+		    method:'post',
+		    queryParams: {
+				cateId:cateId
+			},
+		    fit:true,
+		    pagination:true,
+		    columns:[[
+		    	{field:'ck',title:'全选',checkbox:true},
+		        {field:'title',title:'标题',width:300},
+		        {field:'author',title:'作者',width:100},
+		        {field:'source',title:'新闻内容',width:100},
+		        {field:'date',title:'时间',width:200},
+		        {field:'userId',title:'操作',width:200,
+		            formatter: function(value,row,index){
+						return "<a onclick=deleteData('"+row._id+"')>删除</a>  <a onclick=editData('"+row._id+"')>修改</a>  <a onclick=infoData('"+row._id+"')>新闻详情</a>"
+					}			        
+		       }		        
+		    ]]
+		});
+		
+		$('#addBtn').click(function(){
+			$('#ff').form('clear');
+			if (cateId===null) {
+				 $.messager.show({
+	                title:'温馨提示',
+	                msg:'请先选择新闻中心的新闻类型，否则不能添加',
+	                timeout:5000,
+	                showType:'show'
+	            });
+			} else{
+				
+			$('#dlg').dialog('open');
+			}
+		});
+		
+	    function submitForm(){
+           var postData=$('#ff').serializeJSON();
+           postData.cateId=cateId;           
+           $.ajax({
+           	type:"post",
+           	url:"http://localhost:3000/news/data",
+           	data:postData,
+           	async:true
+           }).done(function(res){
+           		$.messager.show({
+	                title:'温馨提示',
+	                msg:'数据添加成功',
+	                timeout:5000,
+	                showType:'show'
+	            });
+           	$('#dlg').dialog('close');
+           	$('#dg').datagrid('reload');
+           })
+           
+        }
+        function clearForm(){
+            $('#ff').form('clear');
+        }
+        
+        function deleteData(id){
+        	 $.messager.confirm('确认删除', '你确定删除数据吗?', function(r){
+                if (r){
+                   $.ajax({
+		        		type:"delete",
+		        		url:"http://localhost:3000/news/data/"+id,
+		        		async:true
+		        	}).done(function(res){
+		        		$('#dg').datagrid('reload');
+		        	})                  
+                }
+            });
+        }
+        
+        function editData(id){
+        	$.ajax({
+        		type:"get",
+        		url:"http://localhost:3000/news/data/"+id,
+        		async:true
+        	}).done(function(res){
+        	  	$('#ff').form('load', res);
+        		$('#dlg').dialog('open');
+        	})    
+        }
+        
+        function infoData(id){
+        	
+        	$.ajax({
+        		type:"get",
+        		url:"http://localhost:3000/news/data/"+id,
+        		async:true
+        	}).done(function(res){
+        	  	$('#ff').form('load', res);
+        		$('#dlg1').dialog('open');
+        	})    
+        	
+        	
+        }
+        
+        $('#commentBtn').click(function(){
+        	
+        	
+        })
+        
+        $('#removesBtn').click(function(){
+        	var row=$('#dg').datagrid('getSelections');        	
+        	if (row.length>0) {
+        		var ids=[];
+        		row.forEach(function(item,idx){
+        			ids.push(item._id);
+        		})
+        	} 
+        	
+        	$.ajax({
+        		type:"post",
+        		url:"http://localhost:3000/news/data/removes",
+        		async:true,
+        		data:{
+        			ids:ids.toString()
+        		}
+        	}).done(function(res){
+        		$('#dg').datagrid('reload');
+        	})
+        })
+        
+        function doSearch(value){
+            $("#dg").datagrid({
+		        queryParams:{
+		            cateId: cateId,
+		            title: value
+		        }
+		    }).datagrid('reload');
+        }      
+        
+        $('#searchAllBtn').click(function(){        
+        	$("#dg").datagrid({
+				queryParams: {
+					cateId:null
+				}
+			}).datagrid('reload');
+
+        })
+    </script>
+</body>
+</html>

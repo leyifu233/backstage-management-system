@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Basic Layout - jQuery EasyUI Demo</title>
+	<link rel="stylesheet" type="text/css" href="./themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="./themes/icon.css">
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+</head>
+<body>	
+	<div class="easyui-layout" data-options="fit:true">
+		<div data-options="region:'north'" style="height:50px;background: #0081C2;position: relative;">
+            <div style="position: absolute;left: 40%;top: 3px;">
+            	<a style="color: #FFF3F3;font-size: 30px;">用户管理后台系统</a>
+            </div>
+            <div style="position: absolute;right: 10px;top: 5px;">
+            	<a style="color: #FFF3F3;font-size: 14px;">user，欢迎你</a>
+            	
+            </div>
+        </div>   
+		<div data-options="region:'west',split:true" title="导航菜单" style="width:300px;">
+			 <div class="easyui-accordion" data-options="fit:true">
+		        <div title="快捷菜单" data-options="iconCls:'icon-redo'" style="overflow:auto;padding:10px;">	
+                    <ul class="easyui-tree wu-side-tree">
+						<li iconCls="icon-chart-organisation" >
+							<a href="javascript:void(0)" data-icon="icon-chart-organisation" data-options="iconCls:'icon-ok'" data-link="component/product.html" iframe="0">
+								商品管理
+							</a>
+						</li>
+						<li iconCls="icon-users">
+							<a href="javascript:void(0)" data-icon="icon-users" data-options="iconCls:'icon-ok'" data-link="component/news.html" iframe="0">
+								新闻管理
+							</a>
+						</li>
+						
+						<li iconCls="icon-book">
+							<a href="javascript:void(0)" data-icon="icon-book" data-options="iconCls:'icon-ok'" data-link="component/user.html" iframe="0">
+								用户管理
+							</a>
+						</li>
+						<li iconCls="icon-book">
+							<a href="javascript:void(0)" data-icon="icon-book" data-options="iconCls:'icon-ok'" data-link="component/cate.html" iframe="0">
+								分类管理
+							</a>
+						</li>	
+					</ul>
+		        </div>
+		        <div title="商品管理" data-options="iconCls:'icon-ok'" style="padding:10px;">
+		                 
+		        </div>		  
+		        <div title="新闻管理" data-options="iconCls:'icon-print'" style="padding:10px;">
+		                 
+		        </div>
+		        <div title="评论管理" data-options="iconCls:'icon-edit'" style="padding:10px;">
+		                 
+		        </div>
+		        <div title="用户管理" data-options="iconCls:'icon-undo'" style="padding:10px;">
+		                 
+		        </div>
+		        <div title="设置" data-options="iconCls:'icon-help'" style="padding:10px;">
+		                 
+		        </div>
+		        
+    		</div>
+		</div>
+		<div data-options="region:'center',title:'主页面'">
+
+			<div id="tt" class="easyui-tabs"  data-options="fit:true" >
+                <div title="首页" data-options="href:'./component/first.html'" ></div>
+			</div>
+			
+		</div>
+	</div>
+    <script>
+      $(function () {
+			$('.wu-side-tree a').bind('click', function () {
+				var title = $(this).text();
+				var url = $(this).attr('data-link');
+				var ico=$(this).attr('data-options');
+				addTab(title, url,ico);
+			})
+
+			function addTab(title, href,ico) {
+				var tabPanel = $("#tt");
+				if (!tabPanel.tabs('exists', title)) {
+					var content = '<iframe style="width:100%;height:100%" frameborder="0" src="' + href + '"></iframe>';
+					tabPanel.tabs('add', {
+						title: title,
+						content: content,
+						fit: true,
+						closable: true,
+						ico:ico
+					})
+				}
+			}
+		})
+        
+        
+         
+    </script>
+</body>
+</html>

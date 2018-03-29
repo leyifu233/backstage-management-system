@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>User</title>
+	<link rel="stylesheet" type="text/css" href="../themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../themes/icon.css">
+	<script type="text/javascript" src="../js/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="../js/jquery.serializejson.min.js"></script>
+</head>
+<body>
+	
+		
+				<div class="easyui-layout" data-options="fit:true">
+					<div data-options="region:'north',split:true" style="height:40px;border:0">
+						<a href="#" id='allUsersData' class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="height:32px;">所有用户</a>
+						<a href="#"  onclick="$('#dlg').dialog('open');$('#ff').form('clear');" class="easyui-linkbutton" data-options="iconCls:'icon-add'" style="height:32px;">添加用户</a>
+                    	<a href="#" id='removes' class="easyui-linkbutton" data-options="iconCls:'icon-remove'" style="height:32px;">删除多个用户</a>
+                    	  <input class="easyui-searchbox" data-options="prompt:'Please Input Value',searcher:doSearch" style="width:380px;height:32px;">
+					 </div>
+					<div data-options="region:'center'">
+						<table id="dg"></table>
+					</div>
+				</div>
+			
+		<div id="dlg" class="easyui-dialog" title="添加用户" data-options="iconCls:'icon-save',closed:true" style="width:480px;height:460px;padding:10px">
+             <form id="ff" method="post" action="">
+	            <div style="margin-bottom:20px">
+	                <input class="easyui-textbox" name="name" style="width:100%" data-options="label:'Name:',required:true">
+	            </div>
+	            <div style="margin-bottom:20px">
+		            <input class="easyui-passwordbox" name="password" prompt="Password" data-options="label:'password:',required:true" iconWidth="28" style="width:100%">
+		        </div>
+	            <div style="margin-bottom:20px;text-align: center;">
+              		Man: <input  type="radio" name="gender" value="男" >
+                  	Woman: <input  type="radio" name="gender" value="女" >
+                 </div>
+	            <div style="margin-bottom:20px">
+	                <input class="easyui-textbox" name="mail" style="width:100%" data-options="label:'Email:',required:true,validType:'email'">
+	            </div>
+	             <div style="margin-bottom:20px">
+		            <input class="easyui-textbox" name="city" label="City:"  style="width:100%">
+		        </div>
+	            <div style="margin-bottom:20px">
+	                <input class="easyui-textbox" name="desc" style="width:100%;height:60px" data-options="label:'Message:',multiline:true">
+	            </div>
+	        </form>
+	        <div style="text-align:center;padding:5px 0">
+	            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm()" style="width:80px">Submit</a>
+	            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm()" style="width:80px">Clear</a>
+	        </div>
+		</div>
+		<script>
+			$('#dg').datagrid({
+				fit:true,
+				border:false,
+				pagination:true,
+				pageSize:5,
+				pageList: [5,10,15,20],
+				url:'http://localhost:3000/users/list',
+				columns:[[
+					{field:'ck',checkbox:true},
+					{field:'name',title:'姓名',width:'7.5%',align:'center'},
+					{field:'gender',title:'性别',width:'7%',align:'center'},
+					{field:'city',title:'城市',width:'14%',align:'center'},
+					{field:'mail',title:'邮件',width:'22%',align:'center'},
+					{field:'desc',title:'描述',width:'24%',align:'center'},
+					{field:'operate',title:'操作',width:'22%',align:'center',formatter: function(value,row,index){
+						return "<a onclick=deleteData('"+row._id+"')>删除</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a onclick=upData('"+row._id+"')>修改</a>"
+					}},
+				]]
+			});
+				
+			
+			function clearForm(){
+				$('#ff').form('clear');
+				$('#dg').datagrid('reload')
+			}
+			function doSearch(value){
+	            $('#dg').datagrid({
+	            	queryParams: {
+	            		name: value
+	            	}
+	            }).datagrid('reload')
+	        }
+			
+			$('#allUsersData').click(function(){
+				$('#dg').datagrid({
+	            	queryParams: {
+	            		_v: 0
+	            	}
+	            }).datagrid('reload')
+			})
+			  //删除多个用户
+			$('#removes').click(function(){
+				var rows=$('#dg').datagrid('getSelections');
+				if(rows.length>0){
+                	var ids=[];
+                	rows.forEach(function(item,idx){
+	                	ids.push(item._id)
+								
+	              	})
+	           
+				    $.messager.confirm('删除用户', '是否删除用户?', function(r){
+			           if (r){
+		                	$.ajax({
+		                		type:"post",
+		                		url:"http://localhost:3000/users/data/removes",
+		                		data:{
+		                			ids:ids.toString()
+		                		},
+		                		async:true
+		                	}).done(function(res){
+		                		$('#dg').datagrid('reload')
+		                	})
+		                }
+		            }) 
+				}
+		    })
+			function deleteData(id){
+			 $.messager.confirm('删除用户', '是否删除用户?', function(r){
+	                if (r){
+	                    $.ajax({
+							type:"delete",
+							url:"http://localhost:3000/users/data/" + id,
+							async:true
+						}).done(function(res){
+							$("#dg").datagrid('reload');
+						})
+	                }
+	            })
+			}
+			var upid=null;
+			function upData(id){
+				$.ajax({
+					type:"get",
+					url:"http://localhost:3000/users/data/"+ id,
+					async:true
+				}).done(function(res){
+					$('#ff').form('load',res)
+					$('#dlg').dialog('open')
+					upid=id;
+				});
+			}
+			function submitForm(){
+				
+				if(upid!=null){
+					//修改
+					var postdata=$('#ff').serializeJSON();
+					$.ajax({
+						type:"put",
+						url:"http://localhost:3000/users/data/" +upid,
+						data: postdata,
+						async:true
+					}).done(function(res){
+						$('#dlg').dialog('close');
+						$('#dg').datagrid('reload');
+						upid=null;
+					});
+					
+				}else{
+					//验重和添加
+					var postdata=$('#ff').serializeJSON();
+					var username=$('#ff').find('input').eq(0).val();
+					$.ajax({//验重
+						type:"post",
+						url:"http://localhost:3000/users/list",
+						data:{
+							name: username,
+						},
+						async:true
+					}).done(function(res){
+						if(res.rows.length>0){
+							alert2()
+						}else{
+							$.ajax({//添加
+								type:"post",
+								url:"http://localhost:3000/users/data",
+								data: postdata,
+								async:true
+							}).done(function(res){
+								$('#dlg').dialog('close');
+								$('#dg').datagrid('reload')
+							})
+						}
+					})
+				}
+			}	
+			function alert2(){
+				$.messager.alert('错误','用户名重复!','error');
+			}
+		</script> 
+</body> 
+</html>

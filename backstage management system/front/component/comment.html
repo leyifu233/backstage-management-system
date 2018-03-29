@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Comment</title>
+    <link rel="stylesheet" type="text/css" href="../themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../themes/icon.css">
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/jquery.serializejson.min.js"></script>
+   
+</head>
+<body>
+    <div class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'north',split:true" style="height:40px;border:0">
+            <a href="#" id='allUsersData' class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="height:32px;">所有评论</a>
+            <a href="#"  onclick="$('#dlg').dialog('open');$('#ff').form('clear');" class="easyui-linkbutton" data-options="iconCls:'icon-add'" style="height:32px;">添加评论</a>
+            <a href="#" id='removes' class="easyui-linkbutton" data-options="iconCls:'icon-remove'" style="height:32px;">删除多个评论</a>
+              <input class="easyui-searchbox" data-options="prompt:'Please Input Value',searcher:doSearch" style="width:380px;height:32px;">
+         </div>
+        <div data-options="region:'center'">
+            <table id="dg"></table>
+        </div>
+    </div>
+            <div id="dlg" class="easyui-dialog" title="添加评论" data-options="iconCls:'icon-save',closed:true" style="width:480px;height:400px;padding:10px">
+                 <form id="ff" method="post" action="http://localhost:3000/comment/data">
+                    <div style="margin-bottom:20px">
+                        <input class="easyui-textbox" name="name" style="width:100%" data-options="label:'Name:',required:true">
+                    </div>
+                    <div style="margin-bottom:20px;text-align: center;">
+                          Man: <input  type="radio" name="gender" value="男" >
+                          Woman: <input  type="radio" name="gender" value="女" >
+                    </div>
+                     <div style="margin-bottom:20px">
+                        <input class="easyui-textbox" name="title" label="Title:"  style="width:100%">
+                    </div>
+                    <div style="margin-bottom:20px">
+                        <input class="easyui-textbox" name="desc" style="width:100%;height:60px" data-options="label:'Message:',multiline:true">
+                    </div>
+                </form>
+                <div style="text-align:center;padding:5px 0">
+                    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm()" style="width:80px">Submit</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm()" style="width:80px">Clear</a>
+                </div>
+            </div>
+            <script>
+                $('#dg').datagrid({
+                    fit:true,
+                    border:false,
+                    pagination:true,
+                    pageSize:5,
+                    pageList: [5,10,15,20],
+                    url:'http://localhost:3000/comment/list',
+                    columns:[[
+                        {field:'ck',checkbox:true},
+                        {field:'name',title:'用户名',width:'7.5%',align:'center'},
+                        {field:'gender',title:'用户性别',width:'7%',align:'center'},
+                        {field:'date',title:'评论时间',width:'14%',align:'center'},
+                        {field:'title',title:'标题',width:'22%',align:'center'},
+                        {field:'desc',title:'评论内容',width:'24%',align:'center'},
+                        {field:'operate',title:'操作',width:'22%',align:'center',formatter: function(value,row,index){
+                            return "<a onclick=deleteData('"+row._id+"')>删除</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a onclick=upData('"+row._id+"')>修改</a>"
+                        }},
+                    ]]
+                });
+                
+
+                function clearForm(){
+                    $('#ff').form('clear');
+                    $('#dg').datagrid('reload')
+                }
+                  function doSearch(value){
+                    $('#dg').datagrid({
+                        queryParams: {
+                            name: value
+                        }
+                    }).datagrid('reload')
+                }
+            //所有用户按钮
+                $('#allUsersData').click(function(){
+                    $('#dg').datagrid({
+                        queryParams: {
+                            _v: 0
+                        }
+                    }).datagrid('reload')
+                })
+            //删除多个用户
+                $('#removes').click(function(){
+                    var rows=$('#dg').datagrid('getSelections');
+                    if(rows.length>0){
+                        var ids=[];
+                        rows.forEach(function(item,idx){
+                            ids.push(item._id)
+                                    
+                          })
+                    } 
+                    $.messager.confirm('删除评论', '是否删除评论?', function(r){
+                       if (r){
+                            $.ajax({
+                                type:"post",
+                                url:"http://localhost:3000/comment/data/removes",
+                                data:{
+                                    ids:ids.toString()
+                                },
+                                async:true
+                            }).done(function(res){
+                                $('#dg').datagrid('reload')
+                            })
+                        }
+                    })    
+                })
+                function deleteData(id){
+                 $.messager.confirm('删除评论', '是否删除评论?', function(r){
+                        if (r){
+                            $.ajax({
+                                type:"delete",
+                                url:"http://localhost:3000/comment/data/" + id,
+                                async:true
+                            }).done(function(res){
+                                $("#dg").datagrid('reload');
+                            })
+                        }
+                    })
+                }
+                var upid=null;
+                function upData(id){
+                    $.ajax({
+                        type:"get",
+                        url:"http://localhost:3000/comment/data/"+ id,
+                        async:true
+                    }).done(function(res){
+                        $('#ff').form('load',res)
+                        $('#dlg').dialog('open')
+                        upid=id;
+                    });
+                }
+        function submitForm(){
+				console.log(upid)
+				if(upid!=null){
+				//修改
+					var postdata=$('#ff').serializeJSON();
+					$.ajax({
+						type:"put",
+						url:"http://localhost:3000/comment/data/" +upid,
+						data: postdata,
+						async:true
+					}).done(function(res){
+						$('#dlg').dialog('close');
+						$('#dg').datagrid('reload');
+						upid=null;
+					});
+					
+				}else{
+				//添加评论
+					var postdata=$('#ff').serializeJSON();
+					$.ajax({
+						type:"post",
+						url:"http://localhost:3000/comment/data",
+						data: postdata,
+						async:true
+					}).done(function(res){
+						$('#dlg').dialog('close');
+						$('#dg').datagrid('reload')
+					})
+				}
+			}
+            </script> 
+</body>
+</html>

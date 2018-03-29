@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>登录到管理系统</title>
+	<link rel="stylesheet" type="text/css" href="./themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="./themes/icon.css">
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery.easyui.min.js"></script>
+</head>
+	<body>
+		<div id="w" class="easyui-window" title="登陆系统" data-options="iconCls:'icon-save'" style="width:500px;height:265px;padding:20px;">
+			<div style="margin-bottom:10px">
+				<input class="easyui-textbox" name="name" style="width:100%;height:40px;padding:12px" data-options="prompt:'Username',iconCls:'icon-man',iconWidth:38">
+			</div>
+			<div style="margin-bottom:20px">
+				<input class="easyui-textbox" name="password" type="password" style="width:100%;height:40px;padding:12px" data-options="prompt:'Password',iconCls:'icon-lock',iconWidth:38">
+			</div>
+			<div style="margin-bottom:20px">
+				<input type="checkbox" class="zddl"  checked="checked">
+				<span>Remember me</span>
+			</div>
+			<div id="dianji">
+				<a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-ok'" style="padding:5px 0px;width:100%;">
+					<span style="font-size:14px;">Login</span>
+				</a>
+			</div>
+		</div>
+		<script type="text/javascript">
+			function addCookie(key,value,day){
+					var date=new Date();
+					date.setDate(date.getDate()+day);
+					document.cookie=key+'='+encodeURI(value)+';expires='+date;
+				}
+			$('#dianji').click(function(){
+				var username=$('#w').find('input').eq(0).val();
+				var pass=$('#w').find('input').eq(1).val();
+			    
+				$.ajax({
+					type:"post",
+					url:"http://localhost:3000/users/list",
+					data:{
+						name: username,
+						password: pass
+					},
+					async:true
+				}).done(function(res){
+					if(res.rows.length>0){
+						if($('.zddl').prop('checked')){
+							addCookie('UserName',username,7);
+							addCookie('password',pass,7);
+						
+						}
+					window.location.href = "./index.html";
+					}
+				});
+			})
+		</script>
+	</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+	    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	    <link rel="stylesheet" type="text/css" href="../themes/default/easyui.css">
+		<link rel="stylesheet" type="text/css" href="../themes/icon.css">
+		<script type="text/javascript" src="../js/jquery.min.js"></script>
+		<script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+		<script type="text/javascript" src="../js/jquery.serializejson.min.js"></script>
+		<title></title>
+	</head>
+	<body>
+		<div class="easyui-layout" data-options="fit:true">
+	        <div data-options="region:'north'" style="height:50px;border: 0;padding-top: 15px;">
+	            <div id="tabtt"  >
+		        	<a href="#"  class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="width:80px">商品</a>
+		        	<a href="#"  class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="width:80px">新闻</a>
+		        	<a href="#"  class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="width:80px">上传</a>
+		        	<a href="#"  class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="width:80px">用户</a>
+       			</div>
+	        </div>
+	        <div data-options="region:'west',split:true" title="分类中心" style="width:200px;">
+	        	<div  class="easyui-panel" style="padding:5px" data-options="fit:true">
+	        		
+			        <ul class="easyui-tree" id="tt"></ul>
+			    </div>	        	
+	        </div>
+	        <div data-options="region:'center',title:'操作页面',iconCls:'icon-ok'">
+	            <a href="#" id="addOneBtn" class="easyui-linkbutton" data-options="iconCls:'icon-add'">增加一级按钮</a>
+		        <a href="#" id="addTwoBtn" class="easyui-linkbutton" data-options="iconCls:'icon-add'">增加二级按钮</a>
+		        <a href="#" id="removeBtn" class="easyui-linkbutton" data-options="iconCls:'icon-remove'">删除分类</a>
+		        <a href="#" id="updataBtn" class="easyui-linkbutton" data-options="iconCls:'icon-save'">修改分类</a>    
+		        
+		         <div id="dlg" class="easyui-dialog" title="Basic Dialog" data-options="iconCls:'icon-save',closed:true" style="width:400px;height:200px;padding:10px">
+			        <form id="ff" method="post" action="">
+			        	    
+				            <div style="margin-bottom:20px">
+				                <input class="easyui-textbox" name="text" style="width:100%" data-options="label:'标题:',required:true">
+				            </div>		           	       
+			        </form>
+			        <div style="text-align:center;padding:5px 0">
+			            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitForm()" style="width:80px">提交</a>
+			            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearForm()" style="width:80px">取消</a>
+			        </div>
+			    </div>
+			     <div id="dlg1" class="easyui-dialog" title="Basic Dialog" data-options="iconCls:'icon-save',closed:true" style="width:400px;height:200px;padding:10px">
+			        <form id="ff1" method="post" action="">
+			        	    
+				            <div style="margin-bottom:20px">
+				                <input class="easyui-textbox" name="text" style="width:100%" data-options="label:'标题:',required:true">
+				            </div>	
+				      
+			        </form>
+			        <div style="text-align:center;padding:5px 0">
+			            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="submitFormtwo()" style="width:80px">提交</a>
+			            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="clearFormtwo()" style="width:80px">取消</a>
+			        </div>
+			    </div>
+	        </div>
+	    </div>
+	    <script type="text/javascript">
+	    	    
+		    	var tabs=$('#tabtt a');
+		    	var num=null;
+		    	for (var i=0;i<tabs.length;i++) {	
+		    		 tabs[i].index = i;
+				    $('#tabtt a').bind('click', function(){
+			    	    num=this.index+1;
+				        treeShow(num);
+				    });
+				 }   
+			    function treeShow(num){
+	    			$('#tt').tree({
+					    url: "http://localhost:3000/cate/list/"+num,
+					    method:'get',
+					    onClick: function(node){
+					    	cateType=node.type;
+					    	cateId=node._id;
+							cateParentId=node.parentId;
+							$("#dg").datagrid({
+								queryParams: {
+									cateId:cateId
+								}
+							}).datagrid('reload')
+						}
+					});
+		    	}
+			
+			   function morenShow(){
+				   	$('#tt').tree({
+					    url: "http://localhost:3000/cate/list/1",
+					    method:'get',
+					    onClick: function(node){
+					    	cateType=node.type;
+					    	cateId=node._id;
+							cateParentId=node.parentId;
+							$("#dg").datagrid({
+								queryParams: {
+									cateId:cateId
+								}
+							}).datagrid('reload')
+						}
+					});
+			   }
+			   morenShow()
+			$('#addOneBtn').click(function(){
+				if (cateParentId===null) {
+					$('#dlg').dialog('open');
+				} else{
+					
+					 $.messager.show({
+		                title:'温馨提示',
+		                msg:'请先选择最高级按钮，否则不能添加',
+		                timeout:5000,
+		                showType:'show'
+		            });
+				}
+			})
+			
+			$('#addTwoBtn').click(function(){
+				if (cateParentId===null) {
+					 $.messager.show({
+		                title:'温馨提示',
+		                msg:'请先选择一级按钮，否则不能添加',
+		                timeout:5000,
+		                showType:'show'
+		            });
+		            alert(cateParentId)
+				} else{
+					
+					$('#dlg1').dialog('open');
+				}
+			})
+			
+			function submitForm(){
+			var postData=$('#ff').serializeJSON();  
+                   postData.ParentId=cateId;
+                   postData.type=cateType;
+		           $.ajax({
+		           	type:"post",
+		           	url:"http://localhost:3000/cate/data",
+		           	data:postData,
+		           	async:true
+		           }).done(function(res){
+		           		$.messager.show({
+			                title:'温馨提示',
+			                msg:'数据添加成功',
+			                timeout:5000,
+			                showType:'show'
+			            });
+		           	$('#dlg').dialog('close');
+		           	$('#dg').datagrid('reload');
+		           })
+			}
+			
+			function clearForm(){
+	            $('#ff').form('clear');
+	        }
+			
+			
+            function submitFormtwo(){
+			var postData=$('#ff1').serializeJSON();  
+                   postData.ParentId=cateId;
+                   postData.type=cateType;
+                   console.log(postData)
+		           $.ajax({
+		           	type:"post",
+		           	url:"http://localhost:3000/cate/data",
+		           	data:postData,
+		           	async:true
+		           }).done(function(res){
+		           		$.messager.show({
+			                title:'温馨提示',
+			                msg:'数据添加成功',
+			                timeout:5000,
+			                showType:'show'
+			            });
+		           	$('#dlg1').dialog('close');
+		           	$('#dg').datagrid('reload');
+		           })
+			}
+	    	
+	    	function clearFormtwo(){
+	            $('#ff1').form('clear');
+	        }
+	    	
+	    	var cateId=null;
+	    	
+	    	$('#removeBtn').click(function(){
+	    		var id =cateId;
+	    		console.log(id)
+	    		$.messager.confirm('确认删除', '你确定删除数据吗?', function(r){
+	                if (r){
+	                   $.ajax({
+			        		type:"delete",
+			        		url:"http://localhost:3000/cate/data/"+id,
+			        		async:true
+			        	}).done(function(res){
+			        		$('#dg').datagrid('reload');
+			        	})                  
+	                }
+	            });
+	    	
+	    	})
+	    	
+	    	
+	    	
+	    </script>
+	</body>
+</html>
