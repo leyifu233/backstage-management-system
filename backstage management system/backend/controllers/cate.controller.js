@@ -9,7 +9,7 @@ const Cate = require('../models/cate.model');
 
 /* 增 */
 exports.create = function(req,res,next){
-    const cate = new Cate(req.body); // 请示方式是post
+    const cate = new Cate(req.body); 
     cate.save()
     .then(data=>{
         res.json(data);
@@ -19,7 +19,7 @@ exports.create = function(req,res,next){
 /* 修 */
 // 参数：设参 传参 接参
 exports.update = function(req,res,next){
-    // 两种不同的参数传递方式
+
     const id = req.params.id;
     const cate = new Cate(req.body);
 

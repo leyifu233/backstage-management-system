@@ -5,14 +5,14 @@ const mongoose = require('mongoose');
 const Product = require('../models/product.model');
 
 exports.get = function(req,res,next){
-    const id = req.params.id; // 请示方式是post
+    const id = req.params.id; 
     Product.findById(id,function(err,data){
         res.json(data);
     })
 }
 /* 增 */
 exports.create = function(req,res,next){
-    const product = new Product(req.body); // 请示方式是post
+    const product = new Product(req.body); 
     product.save()
     .then(data=>{
         res.json(data);
